@@ -83,7 +83,7 @@ public class MainActivity extends Activity {
         
         // Create the text view
         TextView textView = new TextView(this);
-        textView.setTextSize(40);
+        textView.setTextSize(20);
         textView.setText("Trazando");
         turnGPSOn();
         String currentLocation = getMyCurrentLocation();
@@ -207,7 +207,7 @@ public class MainActivity extends Activity {
             e.printStackTrace();
         }
         turnGPSOn();
-        return ""+MyLat + " " +MyLong +"\n"+StateName+" "+CityName+" "+CountryName;
+        return ""+MyLat+","+MyLong+"\n\n"+StateName+"\n"+CityName+"\n"+CountryName;
     }
    
     // Location listener class. to get location.
