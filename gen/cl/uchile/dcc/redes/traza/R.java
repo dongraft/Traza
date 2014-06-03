@@ -25,9 +25,8 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int action_settings=0x7f080002;
+        public static final int action_settings=0x7f080001;
         public static final int container=0x7f080000;
-        public static final int edit_message=0x7f080001;
     }
     public static final class layout {
         public static final int activity_display_message=0x7f030000;
