@@ -1,5 +1,9 @@
-package cl.uchile.dcc.redes.traza;
+package cl.uchile.dcc.redes.traza.activities;
 
+import cl.uchile.dcc.redes.traza.R;
+import cl.uchile.dcc.redes.traza.R.id;
+import cl.uchile.dcc.redes.traza.R.layout;
+import cl.uchile.dcc.redes.traza.R.menu;
 import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;

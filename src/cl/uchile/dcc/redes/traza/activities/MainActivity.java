@@ -1,4 +1,4 @@
-package cl.uchile.dcc.redes.traza;
+package cl.uchile.dcc.redes.traza.activities;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -7,6 +7,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
+import cl.uchile.dcc.redes.traza.R;
+import cl.uchile.dcc.redes.traza.R.id;
+import cl.uchile.dcc.redes.traza.R.layout;
+import cl.uchile.dcc.redes.traza.R.menu;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
