@@ -1,5 +1,8 @@
 package cl.uchile.dcc.redes.traza;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -32,7 +35,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        
         if (savedInstanceState == null) {
             getFragmentManager().beginTransaction()
                     .add(R.id.container, new PlaceholderFragment())
@@ -93,6 +96,52 @@ public class MainActivity extends Activity {
         setContentView(textView);
         
         //startActivity(intent);
+    }
+    
+    /** button_ping onClick listener */
+    public void doPing(View view){
+    	System.out.println(" executeCammand");
+        Runtime runtime = Runtime.getRuntime();
+        try
+        {
+        	// Ejecuta el ping
+            Process  mIpAddrProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");
+            int mExitValue = mIpAddrProcess.waitFor();
+            System.out.println(" mExitValue "+mExitValue);
+            // Procesa la salida
+            String temp;
+            String stdout = "";
+            String stderr = "";
+            BufferedReader stdoutBr = new BufferedReader(new InputStreamReader(mIpAddrProcess.getInputStream()));
+            BufferedReader stderrBr = new BufferedReader(new InputStreamReader(mIpAddrProcess.getErrorStream()));
+            while ((temp = stdoutBr.readLine()) != null) {
+                stdout += temp + "\n";
+            }
+            while ((temp = stderrBr.readLine()) != null) {
+                stderr += temp + "\n";
+            }
+            // Muestra la salida en el TextView
+            TextView tvDisplay = (TextView) findViewById(R.id.tv_display);
+            tvDisplay.setText(stdout);
+            // Muestra la salida en la consola
+            if(mExitValue==0){
+                System.out.println("MOCO SUCCESS ping returned:\nstd: "+stdout+"\nerr: "+stderr);
+            }else{
+            	System.out.println("MOCO FAIL ping returned:\nstd: "+stdout+"\nerr: "+stderr);
+            }
+            // Destruye el proces
+            mIpAddrProcess.destroy();
+        }
+        catch (InterruptedException ignore)
+        {
+            ignore.printStackTrace();
+            System.out.println(" Exception:"+ignore);
+        } 
+        catch (IOException e) 
+        {
+            e.printStackTrace();
+            System.out.println(" Exception:"+e);
+        }
     }
     
     public void turnGPSOn(){
