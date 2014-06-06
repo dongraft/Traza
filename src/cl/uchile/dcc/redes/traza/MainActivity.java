@@ -88,9 +88,7 @@ public class MainActivity extends Activity {
         TextView textView = new TextView(this);
         textView.setTextSize(20);
         textView.setText("Trazando");
-        turnGPSOn();
         String currentLocation = getMyCurrentLocation();
-        turnGPSOff();
         textView.setText(currentLocation);
         // Set the text view as the activity layout
         setContentView(textView);
@@ -145,19 +143,18 @@ public class MainActivity extends Activity {
     }
     
     public void turnGPSOn(){
-        try
-        {
+        try{
        
-        String provider = Settings.Secure.getString(getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
-
-       
-        if(!provider.contains("gps")){ //if gps is disabled
-            final Intent poke = new Intent();
-            poke.setClassName("com.android.settings", "com.android.settings.widget.SettingsAppWidgetProvider");
-            poke.addCategory(Intent.CATEGORY_ALTERNATIVE);
-            poke.setData(Uri.parse("3"));
-            sendBroadcast(poke);
-        }
+	        String provider = Settings.Secure.getString(getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
+	
+	       
+	        if(!provider.contains("gps")){ //if gps is disabled
+	            final Intent poke = new Intent();
+	            poke.setClassName("com.android.settings", "com.android.settings.widget.SettingsAppWidgetProvider");
+	            poke.addCategory(Intent.CATEGORY_ALTERNATIVE);
+	            poke.setData(Uri.parse("3"));
+	            sendBroadcast(poke);
+	        }
         }
         catch (Exception e) {
            
@@ -177,6 +174,7 @@ public class MainActivity extends Activity {
     }
     
     String getMyCurrentLocation() {
+    	turnGPSOn();
         
         
         LocationManager locManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -255,7 +253,7 @@ public class MainActivity extends Activity {
         {
             e.printStackTrace();
         }
-        turnGPSOn();
+        turnGPSOff();
         return ""+MyLat+","+MyLong+"\n\n"+StateName+"\n"+CityName+"\n"+CountryName;
     }
    
