@@ -20,7 +20,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="cl.uchile.dcc.redes.traza.MainActivity"
+            android:name="cl.uchile.dcc.redes.traza.activities.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,9 +29,9 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="cl.uchile.dcc.redes.traza.DisplayMessageActivity"
+            andcl.uchile.dcc.redes.traza.activities.DisplayMessageActivityageActivity"
             android:label="@string/title_activity_display_message"
-            android:parentActivityName="cl.uchile.dcc.redes.traza.MainActivity" >
+            android:parentActivityName="cl.uchile.dcc.redes.traza.activities.MainActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="cl.uchile.dcc.redes.traza.MainActivity" />
