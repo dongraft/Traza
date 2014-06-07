@@ -10,16 +10,20 @@ import cl.uchile.dcc.redes.traza.R;
 
 public class Ping {
 	
-	private final Runtime runtime = Runtime.getRuntime();
+	private Runtime runtime;
 	
-	private URL url;
+	private String host;
 	private int times;
 	
-	public Ping(URL url, int times) {
-		this.url = url;
+	public Ping(String host, int times) {
+		this.host = host;
 		this.times = times;
 		
 		runtime = Runtime.getRuntime();
+	}
+	
+	public Ping(String host){
+		this(host, 3);
 	}
 	
 	public PingResult execute(){
@@ -28,7 +32,9 @@ public class Ping {
 		progArg[0] = "/system/bin/ping";
 		progArg[1] = "-q";
 		progArg[2] = "-c"+this.times;
-		progArg[3] = this.url.getHost();
+		progArg[3] = host;
+		
+		PingResult result = new PingResult();
 		
 		try{
 			// Execute process
@@ -37,25 +43,30 @@ public class Ping {
 			// Read output
 			BufferedReader stdoutBr = new BufferedReader(new InputStreamReader(pingProcess.getInputStream()));
 	        BufferedReader stderrBr = new BufferedReader(new InputStreamReader(pingProcess.getErrorStream()));
-	        // Parse output
+	        
+	        
+	        // Get output
 	        String temp;
 	        String stdout = "";
-	        String stderr = "";
+	        String stderr = ""; // Could be useful someday
 	        
-	        while ((temp = stdoutBr.readLine()) != null) {
-	            stdout += temp + "\n";
+	        if(exitCode == 0){
+	        
+		        while ((temp = stdoutBr.readLine()) != null) {
+		            stdout += temp + "\n";
+		        }
+		        while ((temp = stderrBr.readLine()) != null) {
+		            stderr += temp + "\n";
+		        }
+		        
+		        result.parse(stdout);
 	        }
-	        while ((temp = stderrBr.readLine()) != null) {
-	            stderr += temp + "\n";
-	        }
 	        
-	        pingProcess.destroy();
-	        
-	        
-			
 		} catch(Exception e){
 			e.printStackTrace();
 			System.out.println("ERROR");
 		}
+		
+		return result;
 	}
 }

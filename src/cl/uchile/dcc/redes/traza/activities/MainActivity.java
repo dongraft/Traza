@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-
+import cl.uchile.dcc.redes.traza.utils.*;
 import cl.uchile.dcc.redes.traza.R;
 import cl.uchile.dcc.redes.traza.R.id;
 import cl.uchile.dcc.redes.traza.R.layout;
@@ -102,48 +102,12 @@ public class MainActivity extends Activity {
     
     /** button_ping onClick listener */
     public void doPing(View view){
-    	System.out.println(" executeCammand");
-        Runtime runtime = Runtime.getRuntime();
-        try
-        {
-        	// Ejecuta el ping
-            Process  mIpAddrProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");
-            int mExitValue = mIpAddrProcess.waitFor();
-            System.out.println(" mExitValue "+mExitValue);
-            // Procesa la salida
-            String temp;
-            String stdout = "";
-            String stderr = "";
-            BufferedReader stdoutBr = new BufferedReader(new InputStreamReader(mIpAddrProcess.getInputStream()));
-            BufferedReader stderrBr = new BufferedReader(new InputStreamReader(mIpAddrProcess.getErrorStream()));
-            while ((temp = stdoutBr.readLine()) != null) {
-                stdout += temp + "\n";
-            }
-            while ((temp = stderrBr.readLine()) != null) {
-                stderr += temp + "\n";
-            }
-            // Muestra la salida en el TextView
-            TextView tvDisplay = (TextView) findViewById(R.id.tv_display);
-            tvDisplay.setText(stdout);
-            // Muestra la salida en la consola
-            if(mExitValue==0){
-                System.out.println("MOCO SUCCESS ping returned:\nstd: "+stdout+"\nerr: "+stderr);
-            }else{
-            	System.out.println("MOCO FAIL ping returned:\nstd: "+stdout+"\nerr: "+stderr);
-            }
-            // Destruye el proces
-            mIpAddrProcess.destroy();
-        }
-        catch (InterruptedException ignore)
-        {
-            ignore.printStackTrace();
-            System.out.println(" Exception:"+ignore);
-        } 
-        catch (IOException e) 
-        {
-            e.printStackTrace();
-            System.out.println(" Exception:"+e);
-        }
+    	// The ping
+    	Ping ping = new Ping("anakena.dcc.uchile.cl");
+    	PingResult result = ping.execute();
+    	// Muestra la salida en el TextView
+        TextView tvDisplay = (TextView) findViewById(R.id.tv_display);
+        tvDisplay.setText(result.toString());
     }
     
     public void turnGPSOn(){
