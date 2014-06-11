@@ -1,6 +1,7 @@
 package cl.uchile.dcc.redes.traza.activities;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,11 +17,12 @@ import org.apache.http.message.BasicNameValuePair;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
-import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -128,6 +130,7 @@ public class MainActivity extends Activity {
         locationManager.removeUpdates(locationListener);
         //Se cae con post data buuu
 //        postData(latitude, longitude, accuracy);
+        new TestAsynch().execute();
     }
     
     public void postData(String lat, String lng, String accu) {
@@ -154,6 +157,21 @@ public class MainActivity extends Activity {
         }
     }
     
- 
+    class TestAsynch extends AsyncTask<Void, Integer, String>{
+        protected void onPreExecute (){
+            Log.d("PreExceute","On pre Exceute......");
+        }
+
+        protected String doInBackground(Void...arg0) {
+        	postData(latitude, longitude, accuracy);
+            return "You are at PostExecute";
+        }
+
+        protected void onProgressUpdate(Integer...a){            
+        }
+
+        protected void onPostExecute(String result) {
+        }
+    } 
 
 }
