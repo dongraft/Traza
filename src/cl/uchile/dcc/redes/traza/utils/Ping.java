@@ -1,12 +1,7 @@
 package cl.uchile.dcc.redes.traza.utils;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URL;
-
-import android.widget.TextView;
-import cl.uchile.dcc.redes.traza.R;
 
 public class Ping {
 	
@@ -57,7 +52,7 @@ public class Ping {
 		        }
 		        while ((temp = stderrBr.readLine()) != null) {
 		            stderr += temp + "\n";
-		        }
+		        }	
 		        
 		        result.parse(stdout);
 	        }
