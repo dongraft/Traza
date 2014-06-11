@@ -1,38 +1,43 @@
 package cl.uchile.dcc.redes.traza.activities;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.io.IOException;
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import cl.uchile.dcc.redes.traza.utils.*;
-import cl.uchile.dcc.redes.traza.R;
-import cl.uchile.dcc.redes.traza.R.id;
-import cl.uchile.dcc.redes.traza.R.layout;
-import cl.uchile.dcc.redes.traza.R.menu;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
-import android.content.Intent;
-import android.location.Address;
-import android.location.Geocoder;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import cl.uchile.dcc.redes.traza.R;
+import cl.uchile.dcc.redes.traza.utils.Ping;
+import cl.uchile.dcc.redes.traza.utils.PingResult;
 
 
 public class MainActivity extends Activity {
-
+	private LocationManager locationManager;
+    private LocationListener locationListener;
+    private String latitude;
+    private String longitude;
+    private String accuracy;
     public final static String EXTRA_MESSAGE = "cl.uchile.dcc.redes.traza.MESSAGE";
 
     @Override
@@ -40,14 +45,28 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
+        // Acquire a reference to the system Location Manager
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        locationListener = new LocationListener() {
+            public void onLocationChanged(Location location) {
+                latitude = String.valueOf(location.getLatitude());
+                longitude = String.valueOf(location.getLongitude());
+                accuracy = String.valueOf(location.getAccuracy());
+            }
+
+            public void onStatusChanged(String provider, int status, Bundle extras) {}
+            public void onProviderEnabled(String provider) {}
+            public void onProviderDisabled(String provider) {}
+        };
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+        
         if (savedInstanceState == null) {
             getFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
-                    .commit();
+            .add(R.id.container, new PlaceholderFragment())
+            .commit();
         }
     }
-
-
+    
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         
@@ -78,7 +97,7 @@ public class MainActivity extends Activity {
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                Bundle savedInstanceState) {
+            Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             return rootView;
         }
@@ -86,216 +105,55 @@ public class MainActivity extends Activity {
     
     /** Called when the user clicks the Send button */
     public void sendMessage(View view) {
-        //Intent intent = new Intent(this, DisplayMessageActivity.class);
         
-        // Create the text view
         TextView textView = new TextView(this);
         textView.setTextSize(20);
         textView.setText("Trazando");
-        String currentLocation = getMyCurrentLocation();
-        textView.setText(currentLocation);
-        // Set the text view as the activity layout
-        setContentView(textView);
-        
-        //startActivity(intent);
+        setContentView(textView);        
     }
     
     /** button_ping onClick listener */
     public void doPing(View view){
-    	// The ping
-    	Ping ping = new Ping("anakena.dcc.uchile.cl");
-    	PingResult result = ping.execute();
-    	// Muestra la salida en el TextView
+        
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+        
+        // The ping
+        Ping ping = new Ping("anakena.dcc.uchile.cl");
+        PingResult result = ping.execute();
+        // Muestra la salida en el TextView
         TextView tvDisplay = (TextView) findViewById(R.id.tv_display);
-        tvDisplay.setText(result.toString());
+        String ret = result.toString();
+        ret = ret + "\n\n" + latitude +  "," + longitude + "\nAccuracy: "+accuracy+"%";
+        tvDisplay.setText(ret);
+        locationManager.removeUpdates(locationListener);
+        //Se cae con post data buuu
+//        postData(latitude, longitude, accuracy);
     }
     
-    public void turnGPSOn(){
-        try{
-       
-	        String provider = Settings.Secure.getString(getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
-	
-	       
-	        if(!provider.contains("gps")){ //if gps is disabled
-	            final Intent poke = new Intent();
-	            poke.setClassName("com.android.settings", "com.android.settings.widget.SettingsAppWidgetProvider");
-	            poke.addCategory(Intent.CATEGORY_ALTERNATIVE);
-	            poke.setData(Uri.parse("3"));
-	            sendBroadcast(poke);
-	        }
-        }
-        catch (Exception e) {
-           
-        }
-    }
-    
-    public void turnGPSOff(){
-        String provider = Settings.Secure.getString(getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
+    public void postData(String lat, String lng, String accu) {
+        // Create a new HttpClient and Post Header
+        HttpClient httpclient = new DefaultHttpClient();
+        HttpPost httppost = new HttpPost("http://traza.cadcc.cl/");
 
-        if(provider.contains("gps")){ //if gps is enabled
-            final Intent poke = new Intent();
-            poke.setClassName("com.android.settings", "com.android.settings.widget.SettingsAppWidgetProvider");
-            poke.addCategory(Intent.CATEGORY_ALTERNATIVE);
-            poke.setData(Uri.parse("3"));
-            sendBroadcast(poke);
+        try {
+            // Add your data
+            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
+            nameValuePairs.add(new BasicNameValuePair("lat", lat));
+            nameValuePairs.add(new BasicNameValuePair("lng", lng));
+            nameValuePairs.add(new BasicNameValuePair("accu", accu));
+            httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+
+            // Execute HTTP Post Request
+            @SuppressWarnings("unused")
+			HttpResponse response = httpclient.execute(httppost);
+            
+        } catch (ClientProtocolException e) {
+            // TODO Auto-generated catch block
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
         }
     }
     
-    String getMyCurrentLocation() {
-    	turnGPSOn();
-        
-        
-        LocationManager locManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        LocationListener locListener = new MyLocationListener();
-       
-       
-         try{gps_enabled=locManager.isProviderEnabled(LocationManager.GPS_PROVIDER);}catch(Exception ex){}
-           try{network_enabled=locManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);}catch(Exception ex){}
-
-            //don't start listeners if no provider is enabled
-            //if(!gps_enabled && !network_enabled)
-                //return false;
-
-            if(gps_enabled){
-                locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locListener);
-               
-            }
-           
-           
-            if(gps_enabled){
-                location=locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-               
-               
-            }
-           
  
-            if(network_enabled && location==null){
-                locManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locListener);
-               
-            }
-       
-       
-            if(network_enabled && location==null)    {
-                location=locManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER); 
-           
-            }
-       
-        if (location != null) {
-           
-            MyLat = location.getLatitude();
-            MyLong = location.getLongitude();
-
-       
-        } else {
-            Location loc= getLastKnownLocation(this);
-            if (loc != null) {
-               
-                MyLat = loc.getLatitude();
-                MyLong = loc.getLongitude();
-               
-
-            }
-        }
-        locManager.removeUpdates(locListener); // removes the periodic updates from location listener to //avoid battery drainage. If you want to get location at the periodic intervals call this method using //pending intent.
-       
-        try
-        {
-// Getting address from found locations.
-        Geocoder geocoder;
-       
-        List<Address> addresses;
-        geocoder = new Geocoder(this, Locale.getDefault());
-         addresses = geocoder.getFromLocation(MyLat, MyLong, 1);
-
-        StateName= addresses.get(0).getAdminArea();
-        CityName = addresses.get(0).getLocality();
-        CountryName = addresses.get(0).getCountryName();
-        // you can get more details other than this . like country code, state code, etc.
-       
-       
-        System.out.println(" StateName " + StateName);
-        System.out.println(" CityName " + CityName);
-        System.out.println(" CountryName " + CountryName);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        turnGPSOff();
-        return ""+MyLat+","+MyLong+"\n\n"+StateName+"\n"+CityName+"\n"+CountryName;
-    }
-   
-    // Location listener class. to get location.
-    public class MyLocationListener implements LocationListener {
-        public void onLocationChanged(Location location) {
-            if (location != null) {
-            }
-        }
-
-        public void onProviderDisabled(String provider) {
-            // TODO Auto-generated method stub
-        }
-
-        public void onProviderEnabled(String provider) {
-            // TODO Auto-generated method stub
-        }
-
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-            // TODO Auto-generated method stub
-        }
-    }
-   
-    private boolean gps_enabled=false;
-    private boolean network_enabled=false;
-    Location location;
-   
-    Double MyLat, MyLong;
-    String CityName="";
-    String StateName="";
-    String CountryName="";
-   
-// below method to get the last remembered location. because we don't get locations all the times .At some instances we are unable to get the location from GPS. so at that moment it will show us the last stored location. 
-
-    public static Location getLastKnownLocation(Context context){
-        Location location = null;
-        LocationManager locationmanager = (LocationManager)context.getSystemService("location");
-        List list = locationmanager.getAllProviders();
-        boolean i = false;
-        Iterator iterator = list.iterator();
-        do
-        {
-            //System.out.println("---------------------------------------------------------------------");
-            if(!iterator.hasNext())
-                break;
-            String s = (String)iterator.next();
-            //if(i != 0 && !locationmanager.isProviderEnabled(s))
-            if(i != false && !locationmanager.isProviderEnabled(s))
-                continue;
-           // System.out.println("provider ===> "+s);
-            Location location1 = locationmanager.getLastKnownLocation(s);
-            if(location1 == null)
-                continue;
-            if(location != null)
-            {
-                //System.out.println("location ===> "+location);
-                //System.out.println("location1 ===> "+location);
-                float f = location.getAccuracy();
-                float f1 = location1.getAccuracy();
-                if(f >= f1)
-                {
-                    long l = location1.getTime();
-                    long l1 = location.getTime();
-                    if(l - l1 <= 600000L)
-                        continue;
-                }
-            }
-            location = location1;
-           // System.out.println("location  out ===> "+location);
-            //System.out.println("location1 out===> "+location);
-            i = locationmanager.isProviderEnabled(s);
-           // System.out.println("---------------------------------------------------------------------");
-        } while(true);
-        return location;
-    }
 
 }
