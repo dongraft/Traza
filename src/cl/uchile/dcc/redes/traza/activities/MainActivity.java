@@ -17,6 +17,7 @@ import org.apache.http.message.BasicNameValuePair;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -30,37 +31,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import cl.uchile.dcc.redes.traza.R;
+import cl.uchile.dcc.redes.traza.services.TrazaService;
 import cl.uchile.dcc.redes.traza.utils.Ping;
 import cl.uchile.dcc.redes.traza.utils.PingResult;
 
 
 public class MainActivity extends Activity {
-	private LocationManager locationManager;
-    private LocationListener locationListener;
-    private String latitude;
-    private String longitude;
-    private String accuracy;
+	
     public final static String EXTRA_MESSAGE = "cl.uchile.dcc.redes.traza.MESSAGE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
-        // Acquire a reference to the system Location Manager
-        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        locationListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-                latitude = String.valueOf(location.getLatitude());
-                longitude = String.valueOf(location.getLongitude());
-                accuracy = String.valueOf(location.getAccuracy());
-            }
-
-            public void onStatusChanged(String provider, int status, Bundle extras) {}
-            public void onProviderEnabled(String provider) {}
-            public void onProviderDisabled(String provider) {}
-        };
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
         
         if (savedInstanceState == null) {
             getFragmentManager().beginTransaction()
@@ -116,21 +99,18 @@ public class MainActivity extends Activity {
     
     /** button_ping onClick listener */
     public void doPing(View view){
-        
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-        
         // The ping
         Ping ping = new Ping("anakena.dcc.uchile.cl");
         PingResult result = ping.execute();
         // Muestra la salida en el TextView
         TextView tvDisplay = (TextView) findViewById(R.id.tv_display);
         String ret = result.toString();
-        ret = ret + "\n\n" + latitude +  "," + longitude + "\nAccuracy: "+accuracy+"%";
         tvDisplay.setText(ret);
-        locationManager.removeUpdates(locationListener);
-        //Se cae con post data buuu
-//        postData(latitude, longitude, accuracy);
-        new TestAsynch().execute();
+    }
+    
+    public void startService(View view){
+    	Intent intent = new Intent(this, TrazaService.class);
+    	startService(intent);
     }
     
     public void postData(String lat, String lng, String accu) {
@@ -156,22 +136,4 @@ public class MainActivity extends Activity {
             // TODO Auto-generated catch block
         }
     }
-    
-    class TestAsynch extends AsyncTask<Void, Integer, String>{
-        protected void onPreExecute (){
-            Log.d("PreExceute","On pre Exceute......");
-        }
-
-        protected String doInBackground(Void...arg0) {
-        	postData(latitude, longitude, accuracy);
-            return "You are at PostExecute";
-        }
-
-        protected void onProgressUpdate(Integer...a){            
-        }
-
-        protected void onPostExecute(String result) {
-        }
-    } 
-
 }

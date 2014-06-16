@@ -3,6 +3,8 @@ package cl.uchile.dcc.redes.traza.utils;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
+import android.text.format.Time;
+
 public class Ping {
     
     private Runtime runtime;
@@ -18,7 +20,7 @@ public class Ping {
     }
     
     public Ping(String host){
-        this(host, 10);
+        this(host, 3);
     }
     
     public PingResult execute(){
@@ -29,9 +31,11 @@ public class Ping {
         progArg[2] = "-c"+this.times;
         progArg[3] = host;
         
-        PingResult result = new PingResult();
+        PingResult result = null;
         
         try{
+        	Time timestamp = new Time();
+        	timestamp.setToNow();
             // Execute process
             Process pingProcess = runtime.exec(progArg);
             int exitCode = pingProcess.waitFor();
@@ -54,7 +58,7 @@ public class Ping {
                     stderr += temp + "\n";
                 }   
                 
-                result.parse(stdout);
+                result = new PingResult(stdout, timestamp);
             }
             
         } catch(Exception e){

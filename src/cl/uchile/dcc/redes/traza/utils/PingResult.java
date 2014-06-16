@@ -4,31 +4,41 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import android.text.format.Time;
+
 public class PingResult {
 	
 	private final static Logger LOGGER = Logger.getLogger(PingResult.class.getName());
 	
+	private Time timestamp;
 	private String hostname, ipAddress;
-	private int packetsTransmitted, packetsReceived, packetsLost, time; 
+	private int packetsTransmitted, packetsReceived, packetsLost, time;
 	private float min, avg, max, stdev;
 	
 	public PingResult(){
 	}
 	
 	public PingResult(String out){
+		timestamp = new Time();
+		timestamp.setToNow();
+		parse(out);
+	}
+	
+	public PingResult(String out, Time timestamp){
+		this.timestamp = timestamp;
 		parse(out);
 	}
 	
 	
 	public void parse(String out){
 		
-		LOGGER.info("Will parse:\n"+out);
+		//LOGGER.info("Will parse:\n"+out);
 		
 		String hostRegex = "PING\\s(\\S+)\\s\\((\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})\\)\\s"; // PING\s(\S+)\s\((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\)\s
 		String infoRegex = "(\\d+)\\spackets\\stransmitted.*?(\\d+)\\sreceived.*?(\\d+)%\\spacket\\sloss.*?(\\d+)ms"; // (\d+)\spackets\stransmitted.*?(\d+)\sreceived.*?(\d+)%\spacket\sloss.*?(\d+)ms
 		String timesRegex = "(\\d+(?:\\.\\d+)){0,1}/(\\d+(?:\\.\\d+)){0,1}/(\\d+(?:\\.\\d+)){0,1}/(\\d+(?:\\.\\d+)){0,1}"; // (\d+(?:\.\d+)){0,1}/(\d+(?:\.\d+)){0,1}/(\d+(?:\.\d+)){0,1}/(\d+(?:\.\d+)){0,1}
 		
-		LOGGER.info("Regex are:\nhostRegex: "+hostRegex+"\nresultRegex: "+timesRegex);
+		//LOGGER.info("Regex are:\nhostRegex: "+hostRegex+"\nresultRegex: "+timesRegex);
 		
 		Pattern hostPattern = Pattern.compile(hostRegex, Pattern.MULTILINE);
 		Pattern infoPattern = Pattern.compile(infoRegex, Pattern.MULTILINE);
@@ -58,9 +68,13 @@ public class PingResult {
 	}
 	
 	public String toString(){
-		String format = "Hostname: %s\nIP Address: %s\nPackets transmitted: %d\nPackets received: %d\nPackets lost: %d%%\nTime: %dms\nmin: %.3f\navg: %.3f\nmax: %.3f\nstdev: %.3f";
-		return String.format(format, hostname, ipAddress, packetsTransmitted, packetsReceived, packetsLost, time, min, avg, max, stdev);
-		//return String.format(format, hostname, ipAddress, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0);
+		String format = "Timestamp: %s\nHostname: %s\nIP Address: %s\nPackets transmitted: %d\nPackets received: %d\nPackets lost: %d%%\nTime: %dms\nmin: %.3f\navg: %.3f\nmax: %.3f\nstdev: %.3f";
+		return String.format(format, timestamp.format2445(), hostname, ipAddress, packetsTransmitted, packetsReceived, packetsLost, time, min, avg, max, stdev);
+	}
+	
+	public String toStringMin(){
+		String format = "%s %s %s %d %d %d %d %.3f %.3f %.3f %.3f";
+		return String.format(format, timestamp.format2445(), hostname, ipAddress, packetsTransmitted, packetsReceived, packetsLost, time, min, avg, max, stdev);
 	}
 
 	public String getHostname() {
