@@ -1,44 +1,20 @@
 package cl.uchile.dcc.redes.traza.activities;
 
-import java.io.IOException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.ToggleButton;
 import cl.uchile.dcc.redes.traza.R;
 import cl.uchile.dcc.redes.traza.services.TrazaService;
-import cl.uchile.dcc.redes.traza.utils.Ping;
-import cl.uchile.dcc.redes.traza.utils.PingResult;
 
 
 public class MainActivity extends Activity {
-	
-    public final static String EXTRA_MESSAGE = "cl.uchile.dcc.redes.traza.MESSAGE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,10 +22,15 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         
         if (savedInstanceState == null) {
-            getFragmentManager().beginTransaction()
-            .add(R.id.container, new PlaceholderFragment())
-            .commit();
+            getFragmentManager().beginTransaction().add(R.id.container, new PlaceholderFragment()).commit();
         }
+    }
+    
+    @Override
+    protected void onResume() {
+    	super.onResume();
+    	ToggleButton toggleButton = (ToggleButton)findViewById(R.id.toggleService);
+    	toggleButton.setChecked(TrazaService.isRunning());
     }
     
     @Override
@@ -88,52 +69,24 @@ public class MainActivity extends Activity {
         }
     }
     
-    /** Called when the user clicks the Send button */
-    public void sendMessage(View view) {
-        
-        TextView textView = new TextView(this);
-        textView.setTextSize(20);
-        textView.setText("Trazando");
-        setContentView(textView);        
-    }
-    
-    /** button_ping onClick listener */
-    public void doPing(View view){
-        // The ping
-        Ping ping = new Ping("anakena.dcc.uchile.cl");
-        PingResult result = ping.execute();
-        // Muestra la salida en el TextView
-        TextView tvDisplay = (TextView) findViewById(R.id.tv_display);
-        String ret = result.toString();
-        tvDisplay.setText(ret);
-    }
-    
-    public void startService(View view){
+    private void startService() {
     	Intent intent = new Intent(this, TrazaService.class);
     	startService(intent);
     }
     
-    public void postData(String lat, String lng, String accu) {
-        // Create a new HttpClient and Post Header
-        HttpClient httpclient = new DefaultHttpClient();
-        HttpPost httppost = new HttpPost("http://traza.cadcc.cl/");
-
-        try {
-            // Add your data
-            List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(2);
-            nameValuePairs.add(new BasicNameValuePair("lat", lat));
-            nameValuePairs.add(new BasicNameValuePair("lng", lng));
-            nameValuePairs.add(new BasicNameValuePair("accu", accu));
-            httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-            // Execute HTTP Post Request
-            @SuppressWarnings("unused")
-			HttpResponse response = httpclient.execute(httppost);
-            
-        } catch (ClientProtocolException e) {
-            // TODO Auto-generated catch block
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
+    private void stopService() {
+    	Intent intent = new Intent(this, TrazaService.class);
+    	stopService(intent);
+    }
+    
+    public void onClickToggleButton(View view) {
+    	// Is the toggle on?
+        boolean on = ((ToggleButton) view).isChecked();
+        
+        if (on) {
+            startService();
+        } else {
+            stopService();
         }
     }
 }

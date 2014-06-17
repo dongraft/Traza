@@ -1,46 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:gravity="center_vertical"
-    android:orientation="vertical" >
+<RelativeLayout 
+    android:layout_width="fill_parent" 
+    android:layout_height="fill_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <Button
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:onClick="sendMessage"
-        android:text="@string/button_send" />
-
-    <Button
-        android:id="@+id/button_ping"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:onClick="doPing"
-        android:text="@string/button_ping" />
-
-    <Button
-        android:id="@+id/button_start_service"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:onClick="startService"
-        android:text="@string/button_start_service" />
-    
-    <Button
-        android:id="@+id/button_stop_service"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="@string/button_stop_service" />
-
-    <TextView
-        android:id="@+id/tv_display"
+    <ToggleButton
+        android:id="@+id/toggleService"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:onClick="onClickToggleButton" />
 
-</LinearLayout>
+</RelativeLayout>

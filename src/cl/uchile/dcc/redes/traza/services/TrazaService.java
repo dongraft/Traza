@@ -1,14 +1,10 @@
 package cl.uchile.dcc.redes.traza.services;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -25,22 +21,19 @@ import cl.uchile.dcc.redes.traza.utils.Localizer;
 import cl.uchile.dcc.redes.traza.utils.Ping;
 import cl.uchile.dcc.redes.traza.utils.PingResult;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Process;
 import android.provider.Settings.Secure;
-import android.widget.Toast;
 
 public class TrazaService extends Service {
 	
 	private final static Logger LOGGER = Logger.getLogger(PingResult.class.getName());
 	
-	private String androidID;
+	private static boolean running;
 	
-	String FILENAME = "data";
-	FileOutputStream fileOutputStream;
+	private String androidID;
 	
 	ScheduledThreadPoolExecutor threadPool;
 	TestRunnable testRunnable;
@@ -76,9 +69,8 @@ public class TrazaService extends Service {
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		Toast.makeText(this, "service starting", Toast.LENGTH_SHORT).show();
-
-		threadPool.scheduleAtFixedRate(testRunnable, 20, 300, TimeUnit.SECONDS);
+		running = true;
+		threadPool.scheduleAtFixedRate(testRunnable, 3, 3, TimeUnit.SECONDS);
 		// If we get killed, after returning from here, restart
 		return START_STICKY;
 	}
@@ -92,7 +84,7 @@ public class TrazaService extends Service {
 	@Override
 	public void onDestroy() {
 		threadPool.shutdown();
-		Toast.makeText(this, "service done", Toast.LENGTH_SHORT).show();
+		running = false;
 	}
 	
 	public boolean postData(String data) {
@@ -119,4 +111,6 @@ public class TrazaService extends Service {
         }
         return true;
     }
+	
+	public static boolean isRunning() {return running;}
 }
