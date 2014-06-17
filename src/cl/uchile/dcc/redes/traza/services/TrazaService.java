@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -36,7 +37,7 @@ public class TrazaService extends Service {
 	
 	private final static Logger LOGGER = Logger.getLogger(PingResult.class.getName());
 	
-	private String androidID = Secure.getString(this.getContentResolver(), Secure.ANDROID_ID); 
+	private String androidID;
 	
 	String FILENAME = "data";
 	FileOutputStream fileOutputStream;
@@ -51,18 +52,10 @@ public class TrazaService extends Service {
 		
 		@Override
 		public void run() {
-			
 			PingResult pingResult = ping.execute();
-			String data = String.format("TRAZA %d :: %s %s\n", androidID, pingResult.toStringMin(), localizer.toStringMin());
-			try{
-				fileOutputStream.write(data.getBytes());
-				System.out.println(String.format("Traza %d", androidID));
-			} catch(Exception e) {
-				System.out.println(String.format("FAILSAFE Couldn't write to file: %s", e.getMessage()));
-				System.out.println(String.format("Traza %d", androidID));
-				System.out.println(pingResult.toString());
-				System.out.println(localizer.toString());
-			}	
+			String data = String.format("%s %s %s\n", androidID, pingResult.toStringMin(), localizer.toStringMin());
+			boolean sent = postData(data);
+			System.out.println(String.format("TRAZA %b :: %s", sent, data));
 		}
 	}
 	
@@ -72,23 +65,20 @@ public class TrazaService extends Service {
 		HandlerThread thread = new HandlerThread("TrazaThread", Process.THREAD_PRIORITY_BACKGROUND);
 		thread.start();
 		
-		try {
-			fileOutputStream = openFileOutput(FILENAME, Context.MODE_PRIVATE);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		androidID = Secure.getString(this.getContentResolver(), Secure.ANDROID_ID);
+		
+		threadPool = new ScheduledThreadPoolExecutor(1);
 		
 		testRunnable = new TestRunnable();
 		localizer = new Localizer(this);
-		ping = new Ping("anakena.dcc.uchile.cl");
+		ping = new Ping("anakena.dcc.uchile.cl", 10);
 	}
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Toast.makeText(this, "service starting", Toast.LENGTH_SHORT).show();
 
-		threadPool.scheduleAtFixedRate(testRunnable, 0, 3, TimeUnit.SECONDS);
+		threadPool.scheduleAtFixedRate(testRunnable, 20, 300, TimeUnit.SECONDS);
 		// If we get killed, after returning from here, restart
 		return START_STICKY;
 	}
