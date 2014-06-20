@@ -22,6 +22,8 @@ import cl.uchile.dcc.redes.traza.utils.Ping;
 import cl.uchile.dcc.redes.traza.utils.PingResult;
 import android.app.Service;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Process;
@@ -35,6 +37,8 @@ public class TrazaService extends Service {
 	
 	private String androidID;
 	
+	ConnectivityManager connectivityManager;
+	
 	ScheduledThreadPoolExecutor threadPool;
 	TestRunnable testRunnable;
 	
@@ -45,22 +49,27 @@ public class TrazaService extends Service {
 		
 		@Override
 		public void run() {
-			PingResult pingResult = ping.execute();
-			String data = String.format("%s %s %s\n", androidID, pingResult.toStringMin(), localizer.toStringMin());
-			boolean sent = postData(data);
-			System.out.println(String.format("TRAZA %b :: %s", sent, data));
+			
+			NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
+			if(activeNetwork.isConnectedOrConnecting() && activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+				PingResult pingResult = ping.execute();
+				String data = String.format("%s %s %s\n", androidID, pingResult.toStringMin(), localizer.toStringMin());
+				boolean sent = postData(data);
+				System.out.println(String.format("TRAZA %b :: %s", sent, data));
+			}
 		}
 	}
 	
 	@Override
 	public void onCreate() {
-		
 		HandlerThread thread = new HandlerThread("TrazaThread", Process.THREAD_PRIORITY_BACKGROUND);
 		thread.start();
 		
 		androidID = Secure.getString(this.getContentResolver(), Secure.ANDROID_ID);
 		
 		threadPool = new ScheduledThreadPoolExecutor(1);
+		
+		connectivityManager = (ConnectivityManager)this.getSystemService(CONNECTIVITY_SERVICE);
 		
 		testRunnable = new TestRunnable();
 		localizer = new Localizer(this);
