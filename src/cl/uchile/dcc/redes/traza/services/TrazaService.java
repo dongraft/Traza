@@ -28,6 +28,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Process;
 import android.provider.Settings.Secure;
+import android.telephony.TelephonyManager;
 
 public class TrazaService extends Service {
 	
@@ -38,6 +39,7 @@ public class TrazaService extends Service {
 	private String androidID;
 	
 	ConnectivityManager connectivityManager;
+	TelephonyManager telephonyManager;
 	
 	ScheduledThreadPoolExecutor threadPool;
 	TestRunnable testRunnable;
@@ -49,13 +51,18 @@ public class TrazaService extends Service {
 		
 		@Override
 		public void run() {
-			
+			System.out.println("TRY");
 			NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
 			if(activeNetwork.isConnectedOrConnecting() && activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+				System.out.println("MOBILE ON");
 				PingResult pingResult = ping.execute();
-				String data = String.format("%s %s %s\n", androidID, pingResult.toStringMin(), localizer.toStringMin());
+				int networkType = telephonyManager.getNetworkType();
+				System.out.println("netType: "+networkType);
+				String data = String.format("%s %s %s %d\n", androidID, pingResult.toStringMin(), localizer.toStringMin(), networkType);
 				boolean sent = postData(data);
 				System.out.println(String.format("TRAZA %b :: %s", sent, data));
+			} else {
+				System.out.println("MOBILE OFF");
 			}
 		}
 	}
@@ -69,7 +76,8 @@ public class TrazaService extends Service {
 		
 		threadPool = new ScheduledThreadPoolExecutor(1);
 		
-		connectivityManager = (ConnectivityManager)this.getSystemService(CONNECTIVITY_SERVICE);
+		connectivityManager = (ConnectivityManager)getSystemService(CONNECTIVITY_SERVICE);
+		telephonyManager = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
 		
 		testRunnable = new TestRunnable();
 		localizer = new Localizer(this);
