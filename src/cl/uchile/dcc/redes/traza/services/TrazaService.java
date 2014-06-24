@@ -81,13 +81,13 @@ public class TrazaService extends Service {
 		
 		testRunnable = new TestRunnable();
 		localizer = new Localizer(this);
-		ping = new Ping("anakena.dcc.uchile.cl", 10);
+		ping = new Ping("nic.cl", 10);
 	}
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		running = true;
-		threadPool.scheduleAtFixedRate(testRunnable, 3, 3, TimeUnit.SECONDS);
+		threadPool.scheduleAtFixedRate(testRunnable, 3, 300, TimeUnit.SECONDS);
 		// If we get killed, after returning from here, restart
 		return START_STICKY;
 	}
