@@ -92,7 +92,7 @@ public class TrazaService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		running = true;
-		threadPool.scheduleWithFixedDelay(testRunnable, 3, 420, TimeUnit.SECONDS);
+		threadPool.scheduleWithFixedDelay(testRunnable, 3, 360, TimeUnit.SECONDS);
 		// If we get killed, after returning from here, restart
 		return START_STICKY;
 	}
