@@ -27,7 +27,7 @@ public class MainActivity extends Activity {
 
 	private SharedPreferences settings;
 	
-	public static final String[] companies = new String[] {"Entel", "Movistar", "Nextel", "Virgin Mobile", "VTR Móvil"};
+	public static final String[] companies = new String[] {"Claro", "Entel", "Movistar", "Nextel", "Virgin Mobile", "VTR Móvil"};
 	
     @Override
     protected void onCreate(Bundle savedInstanceState) {
