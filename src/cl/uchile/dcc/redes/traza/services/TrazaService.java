@@ -22,11 +22,13 @@ import cl.uchile.dcc.redes.traza.utils.Ping;
 import cl.uchile.dcc.redes.traza.utils.PingResult;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Process;
+import android.preference.PreferenceManager;
 import android.provider.Settings.Secure;
 import android.telephony.TelephonyManager;
 
@@ -46,24 +48,24 @@ public class TrazaService extends Service {
 	
 	private Localizer localizer;
 	private Ping ping;
+	private int company;
 	
 	private class TestRunnable implements Runnable {
 		
 		@Override
 		public void run() {
-			System.out.println("TRY");
-			NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
-			if(activeNetwork.isConnectedOrConnecting() && activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
-				System.out.println("MOBILE ON");
-				PingResult pingResult = ping.execute();
-				int networkType = telephonyManager.getNetworkType();
-				System.out.println("netType: "+networkType);
-				String data = String.format("%s %s %s %d\n", androidID, pingResult.toStringMin(), localizer.toStringMin(), networkType);
-				boolean sent = postData(data);
-				System.out.println(String.format("TRAZA %b :: %s", sent, data));
-			} else {
-				System.out.println("MOBILE OFF");
-			}
+			try {
+				System.out.println("TRAZA RUN");
+				NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
+				if(activeNetwork.isConnectedOrConnecting() && activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
+					PingResult pingResult = ping.execute();
+					int networkType = telephonyManager.getNetworkType();
+					String data = String.format("%s %s %s %d %d\n", androidID, pingResult.toStringMin(), localizer.toStringMin(), networkType, company);
+					boolean sent = postData(data);
+					System.out.println("TRAZA sent ["+sent+"] :: "+data);
+				}
+			} catch(Exception e) {}
+			System.out.println("TRAZA END RUN");
 		}
 	}
 	
@@ -81,13 +83,16 @@ public class TrazaService extends Service {
 		
 		testRunnable = new TestRunnable();
 		localizer = new Localizer(this);
-		ping = new Ping("anakena.dcc.uchile.cl", 10);
+		ping = new Ping("nic.cl", 5);
+		
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		company = settings.getInt("company", 100);
 	}
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		running = true;
-		threadPool.scheduleAtFixedRate(testRunnable, 3, 3, TimeUnit.SECONDS);
+		threadPool.scheduleWithFixedDelay(testRunnable, 3, 420, TimeUnit.SECONDS);
 		// If we get killed, after returning from here, restart
 		return START_STICKY;
 	}
