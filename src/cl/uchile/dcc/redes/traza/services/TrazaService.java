@@ -4,6 +4,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -21,6 +22,8 @@ import cl.uchile.dcc.redes.traza.utils.Localizer;
 import cl.uchile.dcc.redes.traza.utils.Ping;
 import cl.uchile.dcc.redes.traza.utils.PingResult;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
@@ -30,6 +33,7 @@ import android.os.IBinder;
 import android.os.Process;
 import android.preference.PreferenceManager;
 import android.provider.Settings.Secure;
+import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.TelephonyManager;
 
 public class TrazaService extends Service {
@@ -40,11 +44,15 @@ public class TrazaService extends Service {
 	
 	private String androidID;
 	
+	private SharedPreferences settings;
+	
 	ConnectivityManager connectivityManager;
 	TelephonyManager telephonyManager;
 	
 	ScheduledThreadPoolExecutor threadPool;
 	TestRunnable testRunnable;
+	
+	private LocalBroadcastManager localBM;
 	
 	private Localizer localizer;
 	private Ping ping;
@@ -63,6 +71,8 @@ public class TrazaService extends Service {
 					String data = String.format("%s %s %s %d %d\n", androidID, pingResult.toStringMin(), localizer.toStringMin(), networkType, company);
 					boolean sent = postData(data);
 					System.out.println("TRAZA sent ["+sent+"] :: "+data);
+					settings.edit().putInt("pingCounter", settings.getInt("pingCounter", 0)+1).commit();
+					localBM.sendBroadcast(new Intent("COUNTER_UPDATED"));
 				}
 			} catch(Exception e) {}
 			System.out.println("TRAZA END RUN");
@@ -85,8 +95,10 @@ public class TrazaService extends Service {
 		localizer = new Localizer(this);
 		ping = new Ping("nic.cl", 5);
 		
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		settings = PreferenceManager.getDefaultSharedPreferences(this);
 		company = settings.getInt("company", 100);
+		
+		localBM = LocalBroadcastManager.getInstance(this);
 	}
 	
 	@Override
@@ -112,7 +124,7 @@ public class TrazaService extends Service {
 	public boolean postData(String data) {
         // Create a new HttpClient and Post Header
         HttpClient httpclient = new DefaultHttpClient();
-        HttpPost httppost = new HttpPost("http://traza.cadcc.cl/");
+        HttpPost httppost = new HttpPost("http://app.traza.us/");
 
         try {
             // Add your data

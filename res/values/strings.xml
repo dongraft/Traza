@@ -11,4 +11,6 @@
     <string name="button_ping">Ping!</string>
     <string name="button_start_service">Start Service</string>
     <string name="button_stop_service">Stop Service</string>
+    <string name="status_stopped">Stopped</string>
+    <string name="status_running">Running</string>
 </resources>
