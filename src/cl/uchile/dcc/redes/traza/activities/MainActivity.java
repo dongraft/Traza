@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
 	
 	private TextView tvStatus, tvCounter;
 	
-	public static final String[] companies = new String[] {"Claro", "Entel", "Movistar", "Nextel", "Virgin Mobile", "VTR Móvil"};
+	public static final String[] companies = new String[] {"Claro", "Entel", "Movistar", "Nextel", "Virgin Mobile", "VTR"};
 	
 	private LocalBroadcastManager localBM;
 	private class CounterUpdatedReceiver extends BroadcastReceiver {
@@ -182,7 +182,7 @@ public class MainActivity extends Activity {
     	int counter = settings.getInt("pingCounter", 0);
     	String sCounter = "";
     	if(counter == 1)
-    		sCounter = String.format(Locale.getDefault(), "Has ayudado con\n%d\nmedición", counter);
+    		sCounter = String.format(Locale.getDefault(), "Has ayudado con\n%d\nmedicion", counter);
     	else
     		sCounter = String.format(Locale.getDefault(), "Has ayudado con\n%d\nmediciones", counter);
     	
